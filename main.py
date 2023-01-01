@@ -247,7 +247,7 @@ class gearing(calculation):
     实现 run 函数
     '''
 
-    def run(self):
+    def run(self) -> None:
         self.__total_transmission_ratio_cal()
         self.__distribution_transmission_ratios()
         self.__input_speed_shaft()
@@ -277,25 +277,18 @@ class pulley(calculation):
 
     def __selection_pulley(self) -> None:
         self.n: float = self.get_config("n")
-        self.type: str = ""
-        min: float = 999999.0
-        for cur in self.get_config("type_linear_coefficient").values():
-            distance: float = euclidean_distance(
-                cur["k"], cur["b"], point(self.Pca, self.n))
-            if distance < min:
-                min = distance
-                self.type = cur["type"]
+        self.type: str = input("根据转速和功率 请输入带轮型号：")
+        self.set_config("type", self.type)
         self.output(["带轮型号：", "根据Pca", " n", self.type, "型V带轮"])
 
     '''
-    确定效率直径
+    确定小轮直径
     '''
 
     def __diameter_small_pulley(self) -> None:
         range: list = self.get_config("type_linear_coefficient")[
                                       self.type]["range"]
-        self.dd1: float = (range[0] + range[1]) / 2
-        self.set_config("dd1", self.dd1)
+        self.dd1: int = int((range[0] + range[1]) / 2)
         self.output(["确定小轮直径", "由", self.type, "型V带轮得出：", str(self.dd1), "mm"])
 
     '''
@@ -303,99 +296,438 @@ class pulley(calculation):
     '''
 
     def __belt_speed(self) -> None:
-        pass
+        self.v: float = math.pi * self.dd1 * self.get_config("n1") / 60000
+        if 5 < self.v < 30:
+            self.output(["验算带速v 合适", "pi*dd1*n/60000", str(self.v), "m/s"])
+        else:
+            self.output(["验算带速v 不合适", "pi*dd1*n/60000", str(self.v), "m/s"])
 
     '''
     确定大轮直径
     '''
 
     def __diameter_large_pulley(self) -> None:
-        pass
+        self.dd2: int = int(self.dd1 * self.get_config("i1"))
+        self.output(["确定大轮直径", "由小轮直径和传动比得出：", str(self.dd2), "mm"])
 
     '''
     计算中心距
     '''
 
     def __center_distance(self) -> None:
-        pass
+        max: float = 2 * (self.dd1 + self.dd2)
+        min: float = 0.7 * (self.dd1 + self.dd2)
+        self.a0: int = int((max + min) / 2)
+        self.output(["计算中心距", "由小轮直径和大轮直径得出：", str(self.a0), "mm"])
 
     '''
     计算基准长度
     '''
 
     def __datum_length(self) -> None:
-        pass
+        self.l: float = (2 * self.a0) + (math.pi / 2) * \
+            (self.dd1 + self.dd2) + pow((self.dd2 - self.dd1), 2) / (4 * self.a0)
+        self.output(["计算基准长度", "由中心距和小轮直径和大轮直径得出：", str(self.l), "mm"])
+
+    '''
+    计算实际间距
+    '''
+
+    def __actual_spacing(self) -> None:
+        self.a: float = (self.get_config("ld") - self.l) / 2 + self.a0
+        self.output(["计算实际间距", "由实际间距得出：", str(self.a), "mm"])
 
     '''
     计算小带轮包角
     '''
 
     def __small_pulley_wrap_angle(self) -> None:
-        pass
+        self.a1 = 180 - ((self.dd2 - self.dd1) / self.a) * 57.3
+        self.output(["计算小带轮包角", "由小轮直径和大轮直径和实际间距得出：", str(self.a1), "°"])
 
     '''
     单根V带的额定功率
     '''
 
     def __rated_power_single_belt(self) -> None:
-        pass
+        self.P0: float = self.get_config("P0")
+        self.dP0: float = self.get_config("dP0")
+        self.ka: float = self.get_config("ka")
+        self.kl: float = self.get_config("kl")
 
     '''
     计算带的根数
     '''
 
     def __belt_root_number(self) -> None:
-        pass
+        Pd: float = self.get_config("Pd")
+        self.z: int = Pd / ((self.P0 + self.dP0) * self.ka * self.kl)
+        self.set_config("belt_num", self.z)
+        self.output(["计算带的根数", "由额定功率和单根V带的额定功率得出：", str(self.z), "根"])
 
     '''
     计算单根V带的最小拉力
     '''
 
     def __min_value_initial_tension_belt(self) -> None:
-        pass
+        self.F0 = 500 * (2.5 / self.ka - 1)
+        self.get_config("Pd") / (self.z *
+                                 self.v) + self.get_config("q") * pow(self.v, 2)
+        self.output(["计算单根V带的最小拉力", "由额定功率和带的根数和带速得出：", str(self.F0), "N"])
 
     '''
     计算压轴力
     '''
 
     def __axial_force(self) -> None:
-        pass
+        self.Fr = 2 * self.F0 * math.sin(self.a0) / 2 * self.z
+        self.output(["计算压轴力", "由单根V带的最小拉力和实际间距得出：", str(self.Fr), "N"])
 
     def run(self) -> None:
         self.__inputPower()
         self.__selection_pulley()
         self.__diameter_small_pulley()
+        self.__belt_speed()
+        self.__diameter_large_pulley()
+        self.__center_distance()
+        self.__datum_length()
+        self.__actual_spacing()
+        self.__small_pulley_wrap_angle()
+        self.__rated_power_single_belt()
+        self.__belt_root_number()
+        self.__min_value_initial_tension_belt()
+        self.__axial_force()
 
 
 '''
-点到直线的距离
+齿轮设计计算
 '''
 
 
-def euclidean_distance(k: float, h: float, val: point) -> float:
-    x = val.x
-    y = val.y
-    theDistance = math.fabs(h + k * (x - 0) - y) / (math.sqrt(k * k + 1))
-    return theDistance
+class gear(calculation):
+    '''
+    计算εα
+    '''
+
+    def __calculation_epsilon_alpha(self) -> None:
+        self.εα = self.get_config("εα1") + self.get_config("εα2")
+        self.set_config("εα", self.εα)
+        self.output(["计算εα", "由εα1和εα2得出：", str(self.εα), ""])
+
+    '''
+    计算应力循环次数
+    '''
+
+    def __Calculate_number_stress_cycles(self) -> None:
+        self.N1: float = 60 * \
+            self.get_config("n2") * self.get_config("j") * \
+            self.get_config("Lh")
+        self.output(["计算应力循环次数N1", "由n1和j和Lh得出：", str(self.N1), ""])
+        self.N2: float = self.N1 / 5
+        self.output(["计算应力循环次数N2", "由N1得出：", str(self.N2), ""])
+
+    '''
+    计算接触疲劳需用应力
+    '''
+
+    def __Calculation_stress_required_contact_fatigue(self) -> None:
+        self._σH_1 = self.get_config("KHN1") * self.get_config("σHlim1")
+        self.output(["计算接触疲劳需用应力σH1", "由KHN1和σHlim1得出：", str(self._σH_1), ""])
+        self._σH_2 = self.get_config("KHN2") * self.get_config("σHlim2")
+        self.output(["计算接触疲劳需用应力σH2", "由KHN2和σHlim2得出：", str(self._σH_2), ""])
+        self._σH_ = (self._σH_1 + self._σH_2) / 2
+        self.output(["计算接触疲劳需用应力σH", "由_σH_1和_σH_2得出：", str(self._σH_), ""])
+
+    '''
+    试算小齿轮分度圆直径
+    '''
+
+    def __TryCalculate_diameter_pinion_indexing_circle(self) -> None:
+        temp1: float = (2 * self.get_config("Kt") * self.get_config("T2") * pow(10, 3)) / \
+                        (self.get_config("varphi_d") * self.get_config("εα"))
+        temp2: float = (self.get_config("u") + 1) / self.get_config("u")
+        temp3: float = pow(
+            (self.get_config("ZH") * self.get_config("ZE")) / self._σH_, 2)
+        self.d1t = pow(temp1 * temp2 * temp3, float(1) / float(3))
+        self.output(
+            ["试算小齿轮分度圆直径d1t", "由Kt和T1和varphi_d和εα和u和ZH和ZE和_σH_1得出：", str(self.d1t), "mm"])
+        self.set_config("d1t", self.d1t)
+
+    '''
+    试算大齿轮分度圆直径
+    '''
+
+    def __TryCalculate_diameter_large_pinion_indexing_circle(self) -> None:
+        temp1: float = (2 * self.get_config("Kt") * self.get_config("T3") * pow(10, 3)) / \
+                        (self.get_config("varphi_d") * self.get_config("εα"))
+        temp2: float = (self.get_config("u") + 1) / self.get_config("u")
+        temp3: float = pow(
+            (self.get_config("ZH") * self.get_config("ZE")) / self._σH_, 2)
+        self.d2t = pow(temp1 * temp2 * temp3, float(1) / float(3))
+        self.output(
+           ["试算大齿轮分度圆直径d2t", "由Kt和T2和varphi_d和εα和u和ZH和ZE和_σH_2得出：", str(self.d2t), "mm"])
+        self.set_config("d1t", self.d1t)
+
+    '''
+    计算小齿轮圆柱速度
+    '''
+
+    def __Calculate_cylindrical_speed_pinion(self) -> None:
+        self.v_gear1 = (math.pi *
+                        self.d1t * self.get_config("n2")) / (60 * 1000)
+        self.output(["计算小齿轮圆柱速度", "由d1和n2得出：", str(self.v_gear1), "m/s"])
+
+    '''
+    计算小齿轮齿宽b
+    '''
+
+    def __Calculate_pinion_tooth_width(self) -> None:
+        self.b1 = self.get_config("varphi_d") * self.get_config("d1t")
+        self.output(["计算小齿轮齿宽b", "由varphi_d和d1t得出：", str(self.b1), "mm"])
+
+    '''
+    计算大齿轮齿宽b
+    '''
+
+    def __Calculate_large_pinion_tooth_width(self) -> None:
+        self.b2 = self.get_config("varphi_d") * self.d2t
+        self.output(["计算大齿轮齿宽b", "由varphi_d和d1t得出：", str(self.b2), "mm"])
+
+    '''
+    计算小齿轮模数
+    '''
+
+    def __Calculate_pinion_modulus(self) -> None:
+        self.m1 = (self.d1t *
+                   math.cos(math.radians(self.get_config("beta")))) / self.get_config("z2")
+        self.output(["计算小齿轮模数m1", "由d1t和beta和Z2得出：", str(self.m1), ""])
+        self.h1 = 2.25 * self.m1
+        self.output(["计算小齿轮h1", "由m1得出：", str(self.h1), ""])
+        self.temp = self.b1 / self.h1
+        self.output(["b / h", "由b1和h1得出：", str(self.temp), ""])
+
+    '''
+    计算大齿轮模数
+    '''
+
+    def __Calculate_large_pinion_modulus(self) -> None:
+        self.m2 = self.d2t * \
+            math.cos(math.radians(self.get_config("beta"))) / \
+            self.get_config("z1")
+        #self.output(["计算大齿轮模数", "由d1t和beta和Z1得出：", str(self.m2), ""])
+        self.h2 = 2.25 * self.m2
+        #self.output(["计算大齿轮h1", "由m1得出：", str(self.h2), ""])
+        self.temp = self.b2 / self.h2
+        #self.output(["b / h", "由b1和h1得出：", str(self.temp), ""])
+
+    '''
+    计算小齿轮的纵向重合度
+    '''
+
+    def __Calculate_longitudinal_coincidence_degree_pinion(self) -> None:
+        self.εβ = 0.318 * 1 * \
+            self.get_config("z2") * \
+            math.tan(math.radians(self.get_config("beta")))
+        self.output(["计算小齿轮的纵向重合度", "由z1和beta得出：", str(self.εβ), ""])
+
+    '''
+    计算载荷系数 K
+    '''
+
+    def __Calculate_load_coefficient(self) -> None:
+        self.K = self.get_config(
+            "KA") * self.get_config("KV") * self.get_config("KHβ") * self.get_config("KHα")
+        self.output(["计算载荷系数 K", "由KA和KV和KHβ和KHα得出：", str(self.K), ""])
+
+    '''
+    矫正分度圆直径
+    '''
+
+    def __Corrected_graduation_circle_diameter(self) -> None:
+        self.d1 = self.d1t * pow(self.K /
+                                 self.get_config("Kt"), float(1) / float(3))
+        self.output(["矫正小齿轮分度圆直径", "由d1t和K和Kt得出：", str(self.d1), "mm"])
+
+        self.d2 = self.d2t * pow(self.K /
+                                 self.get_config("Kt"), float(1) / float(3))
+        self.output(["矫正大齿轮分度圆直径", "由d2t和K和Kt得出：", str(self.d2), "mm"])
+
+    '''
+    矫正模数
+    '''
+
+    def __Correction_modulus(self) -> None:
+        self.n = self.d1 * \
+            math.cos(math.radians(self.get_config("beta"))) / \
+            self.get_config("z2")
+        self.output(["矫正模数", "由d1和beta和Z1得出：", str(self.n), ""])
+
+    '''
+    计算载荷系数按齿根弯曲强度设计
+    '''
+
+    def __Calculation_load_coefficient_with_bending_strength_tooth_root(self) -> None:
+        self.K = self.get_config(
+            "KA") * self.get_config("KV") * self.get_config("KFβ") * self.get_config("KFα")
+        self.output(["计算载荷系数 K", "由KA和KV和KFβ和KFα得出：", str(self.K), ""])
+
+        temp1: float = (2 * self.K *
+                        self.get_config("T2") * self.get_config("Yβ") * pow(10, 3) *
+                        pow(math.cos(math.radians(self.get_config("beta"))), 2)) / (self.get_config("varphi_d") * pow(self.get_config("z2"), 2) * self.εα)
+        temp2: float = (self.get_config("Yfa2") *
+                        self.get_config("Ysa2")) / self.get_config("σF2")
+
+        self.mn = pow(temp1 * temp2, float(1) / float(3))
+
+        self.output(
+            ["计算模数", "由K和T2和Yβ和beta和varphi_d和z2和εα和Yfa2和Ysa2和σF2得出：", str(self.mn), ""])
+
+    '''
+    计算当量齿数
+    '''
+
+    def __Calculate_equivalent_tooth_number(self) -> None:
+        temp: float = math.cos(math.radians(self.get_config("beta")))
+        self.z1 = self.get_config(
+            "z1") / pow(temp, 3)
+        self.output(["计算当量齿数", "由Z1和beta得出：", str(self.z1), ""])
+        self.z2 = self.get_config(
+            "z2") / pow(temp, 3)
+        self.output(["计算当量齿数", "由Z2和beta得出：", str(self.z2), ""])
+
+    '''
+    计算中心距
+    '''
+
+    def __Calculate_center_distance(self) -> None:
+        temp: float = self.z2
+        self.z2 = (
+            self.d1t * math.cos(math.radians(self.get_config("beta")))) / self.mn
+        self.z1 = self.z1 * (self.z2 / temp)
+
+        self.a = ((self.z1 + self.z2) * self.mn) / \
+            (2 * math.cos(math.radians(self.get_config("beta"))))
+        self.output(["计算中心距", "由z1和z2和m1和beta得出：", str(self.a), "mm"])
+
+    '''
+    修正螺旋角
+    '''
+
+    def __Modified_helix_angle(self) -> None:
+        temp = ((self.z1 + self.z2) * self.mn) / (2 * self.a)
+        self.beta = math.degrees(math.acos(temp))
+        self.set_config("beta", self.beta)
+        self.output(["修正螺旋角", "由z1和z2和mn和a得出：", str(self.beta), "度"])
+
+    '''
+    计算分度圆直径
+    '''
+
+    def __Calculate_diameter_graduation_circle(self) -> None:
+        self.d1 = self.get_config(
+            "z1") * self.mn / math.cos(math.radians(self.get_config("beta")))
+        self.output(["计算分度圆直径", "由Z1和mn和beta得出：", str(self.d1), "mm"])
+        self.d2 = self.get_config(
+            "z2") * self.mn / math.cos(math.radians(self.get_config("beta")))
+        self.output(["计算分度圆直径", "由Z2和mn和beta得出：", str(self.d2), "mm"])
+
+    '''
+    计算齿轮宽度
+    '''
+
+    def __Calculate_gear_width(self) -> None:
+        self.B1 = self.get_config("varphi_d") * self.d1
+        self.output(["计算齿轮宽度", "由varphi_d和d1得出：", str(self.B1), "mm"])
+        self.B2 = self.get_config("varphi_d") * self.d2
+        self.output(["计算齿轮宽度", "由varphi_d和d2得出：", str(self.B2), "mm"])
+
+    def run(self) -> None:
+        self.__calculation_epsilon_alpha()
+        self.__Calculate_number_stress_cycles()
+        self.__Calculation_stress_required_contact_fatigue()
+        self.__TryCalculate_diameter_pinion_indexing_circle()
+        self.__TryCalculate_diameter_large_pinion_indexing_circle()
+        self.__Calculate_cylindrical_speed_pinion()
+        self.__Calculate_pinion_tooth_width()
+        self.__Calculate_large_pinion_tooth_width()
+        self.__Calculate_pinion_modulus()
+        self.__Calculate_large_pinion_modulus()
+        self.__Calculate_longitudinal_coincidence_degree_pinion()
+        self.__Calculate_load_coefficient()
+        self.__Corrected_graduation_circle_diameter()
+        self.__Correction_modulus()
+        self.__Calculation_load_coefficient_with_bending_strength_tooth_root()
+        self.__Calculate_equivalent_tooth_number()
+        self.__Calculate_center_distance()
+        self.__Modified_helix_angle()
+        self.__Calculate_diameter_graduation_circle()
+        self.__Calculate_gear_width()
 
 
 '''
-计算步骤
+    轴设计计算
 '''
+
+
+class axis(calculation):
+    '''
+
+    '''
+
+    def run(self) -> None:
+        pass
+
+
+'''
+    轴承设计计算
+'''
+
+
+class bearing(calculation):
+    def run(self) -> None:
+        pass
+
 
 if __name__ == "__main__":
+
     '''
     确定电动机参数
     '''
+    print("\n**********************确定电动机参数***************************\n")
     e = electroMotor()
     e.run()
+
     '''
     确定传动装置参数
     '''
+    print("\n*************************确定传动装置参数**************************\n")
     g = gearing()
     g.run()
+
     '''
     带轮设计计算
     '''
+    print("\n**************************带轮设计计算*****************************\n")
     p = pulley()
     p.run()
+
+    '''
+    齿轮设计计算
+    '''
+    print("\n****************************齿轮设计计算*****************************\n")
+    ge = gear()
+    ge.run()
+
+    '''
+    轴设计计算
+    '''
+    print("\n****************************轴的设计计算*****************************\n")
+    a = axis()
+    a.run()
+
+    '''
+    轴承设计计算
+    '''
+    print("\n****************************轴承的设计计算*****************************\n")
+    b = bearing()
+    b.run()
