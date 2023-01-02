@@ -638,8 +638,10 @@ class gear(calculation):
     def __Calculate_gear_width(self) -> None:
         self.B1 = self.get_config("varphi_d") * self.d1
         self.output(["计算齿轮宽度", "由varphi_d和d1得出：", str(self.B1), "mm"])
+        self.set_config("B1", self.B1)  # 保存齿轮宽度
         self.B2 = self.get_config("varphi_d") * self.d2
         self.output(["计算齿轮宽度", "由varphi_d和d2得出：", str(self.B2), "mm"])
+        self.set_config("B2", self.B2)  # 保存齿轮宽度
 
     def run(self) -> None:
         self.__calculation_epsilon_alpha()
@@ -665,17 +667,109 @@ class gear(calculation):
 
 
 '''
-    轴设计计算
+高速轴设计计算
 '''
 
 
-class axis(calculation):
-    '''
+class shift(calculation):
+
+    def __init__(self, string: str) -> None:
+        self.typeName: str = string
+
+        self.temp1str = self.temp2str = self.temp3str = ""
+
+        if self.typeName == "Hight-speed-shift":
+            self.temp1str = "P1"
+            self.temp2str = "n1"
+            self.temp3str = "T1"
+        elif self.typeName == "low-speed-shift":
+            self.temp1str = "P3"
+            self.temp2str = "n3"
+            self.temp3str = "T3"
+        elif self.typeName == "Medium-speed-shift":
+            self.temp1str = "P2"
+            self.temp2str = "n2"
+            self.temp3str = "T2"
+
+        super().__init__()
+
+    def get_config(self, par: str) -> None:
+        self.config[self.typeName][self.temp1str] = self.config[self.temp1str]
+        self.config[self.typeName][self.temp2str] = self.config[self.temp2str]
+        self.config[self.typeName]["Ka"] = self.config["Ka"]
+        self.config[self.typeName][self.temp3str] = self.config[self.temp3str]
+        self.config[self.typeName]["B2"] = self.config["B2"]
+        self.config[self.typeName]["beta"] = self.config["beta"]
+        return self.config[self.typeName][par]
 
     '''
+    确定轴的最小直径
+    '''
+
+    def __Calculate_minimum_diameter(self) -> None:
+        self.dmin = self.get_config(
+            "A0") * math.sqrt((self.get_config(self.temp1str) / self.get_config(self.temp2str)))
+
+        self.dmin = self.dmin + self.dmin * 0.06
+
+        self.output(["确定轴的最小直径", "由A0和P1和n1得出：", str(self.dmin), "mm"])
+
+    '''
+    联轴器的计算转矩
+    '''
+
+    def __Calculated_torque_coupling(self) -> None:
+        self.Tca = self.get_config("Ka") * self.get_config(self.temp3str)
+        self.output(["联轴器的计算转矩", "由Ka和T1得出：", str(self.Tca), "N·m"])
+
+    '''
+    确定联轴器的参数
+    '''
+
+    def __Determine_parameters_coupling(self) -> None:
+        self.d = int(self.dmin)  # 联轴器孔径
+        self.output(["确定联轴器孔径", "由dmin得出：", str(self.d), "mm"])
+        self.output(["确定联轴器长度", "查表得出", str(self.get_config("Laxis")), "mm"])
+        self.output(["确定半联轴器长度", "查表得出", str(
+            self.get_config("Laxis/2")), "mm"])
+        self.output(["确定2 - 3直径", "由dmin得出：",
+                    str(self.get_config("D23")), "mm"])
+        self.output(["确定1 - 2长度", "由Laxis / 2得出：",
+                    str(self.get_config("L12")), "mm"])
+        self.output(["确定挡圈直径", "由dmin得出：", str(
+            self.get_config("Dquan")), "mm"])
+        print("步骤： 选用 %f-%f-%f 的轴承" % (self.get_config("D34"),
+              self.get_config("D45"), self.get_config("L56")))
+        print("步骤：端盖 h = %f" % self.get_config("h"))
+        print("步骤： 6 - 7 长度  = %f" % self.get_config("L67"))
+        print("步骤：l 端盖外端面与带轮右端面间距离 = %f" % self.get_config("l-duan"))
+        print("步骤：2 - 3 长度 = %f" % self.get_config("L23"))
+        self.L45 = self.get_config(
+            "s") + self.get_config("a") + self.get_config("B2") + self.get_config("d12")
+        self.output(["确定4 - 5长度", "由s + a + B2 + d12得出：", str(self.L45), "mm"])
+        self.L78 = self.get_config(
+            "D34") + self.get_config("s") + self.get_config("a") + (self.get_config("L23") - self.get_config("L67"))
+        self.output(
+            ["确定7 - 8长度", "由D34 + s + a + (L23 - L67)得出：", str(self.L78), "mm"])
+        self.L45 = self.L78 - self.get_config("L56")
+        self.output(["确定4 - 5长度", "由7 - 8长度 - L56得出：", str(self.L45), "mm"])
+
+    def __Force_calculation(self) -> None:
+        self.Ft1 = (2 * self.get_config(self.temp3str) * pow(10, 2)) / self.d
+        self.output(["计算Ft1", "由T1和d得出：", str(self.Ft1), "N"])
+
+        self.Fr1 = self.Ft1 * \
+            (math.tan(math.radians(self.get_config("alpha")) /
+             math.cos(math.radians(self.get_config("beta")))))
+        self.output(["计算Fr1", "由T1t和alpha得出：", str(self.Fr1), "N"])
+        self.Fa1 = self.Ft1 * math.tan(math.radians(self.get_config("beta")))
+        self.output(["计算Fa1", "由Fr1和beta得出：", str(self.Fa1), "N"])
 
     def run(self) -> None:
-        pass
+        self.__Calculate_minimum_diameter()
+        self.__Calculated_torque_coupling()
+        self.__Determine_parameters_coupling()
+        self.__Force_calculation()
 
 
 '''
@@ -721,9 +815,17 @@ if __name__ == "__main__":
     '''
     轴设计计算
     '''
-    print("\n****************************轴的设计计算*****************************\n")
-    a = axis()
-    a.run()
+    print("\n****************************高速轴的设计计算*****************************\n")
+    hss = shift("Hight-speed-shift")
+    hss.run()
+
+    print("\n****************************中间轴的设计计算*****************************\n")
+    mss = shift("Medium-speed-shift")
+    mss.run()
+
+    print("\n****************************低速轴的设计计算*****************************\n")
+    lss = shift("low-speed-shift")
+    lss.run()
 
     '''
     轴承设计计算

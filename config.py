@@ -3,6 +3,12 @@ config: dict = {}
 '''
 初始参数设置
 '''
+
+'''
+---------------------------------------------------- 运输机参数 ----------------------------------------------------
+'''
+
+
 config["T"]: int = 1000    # 运输机工作轴转矩
 config["v"]: float = 0.70    # 运输带工作速度
 config["D"]: float = 0.4     # 滚筒直径
@@ -15,6 +21,11 @@ config["Range_transmission_ratio"]: list = [
     [3, 7]
 ]
 config["i1"]: float = 3.3   # v带轮传动比范围
+
+'''
+---------------------------------------------------- 带轮参数 ----------------------------------------------------
+'''
+
 config["Ka"]: float = 1.0   # 工作情况系数
 config["P0"]: float = 1.67  # 单根V带的额定功率
 config["dP0"]: float = 0.169  # 单根V带的额定功率增量
@@ -47,6 +58,10 @@ config["type_linear_coefficient"]: dict = {
         "range": [50, 71]
     }
 }
+
+'''
+-------------------------------------------------- 齿轮参数 --------------------------------------------------
+'''
 config["z1"]: int = 100  # 大齿轮齿数缺省值
 config["z2"]: int = 20   # 小齿轮齿数缺省值
 config["beta"]: float = 15  # 螺旋角缺省值
@@ -81,3 +96,77 @@ config["KFN2"]: float = 0.98
 # 设 [σF]
 config["σF1"]: float = 500
 config["σF2"]: float = 380
+
+'''
+----------------------------------------------------- 轴参数 ----------------------------------------------------
+'''
+config["Hight-speed-shift"]: dict = {}
+config["Hight-speed-shift"]["A0"]: float = 112
+config["Hight-speed-shift"]["K1"]: float = 1.3
+config["Hight-speed-shift"]["Laxis"]: float = 32    # 联轴器的长度 查表
+config["Hight-speed-shift"]["Laxis/2"]: float = 27    # 半联轴器的长度 查表
+config["Hight-speed-shift"]["D23"]: float = 16   # 2 -3 轴的直径
+config["Hight-speed-shift"]["D34"]: float = 17  # 3 -4 长度 根据轴承
+config["Hight-speed-shift"]["D45"]: float = 47  # 4 -5 长度 根据轴承
+config["Hight-speed-shift"]["L78"]: float = 14  # 5 -6 长度 根据轴承
+config["Hight-speed-shift"]["h"]: float = 2.5  # 轴肩的高度
+config["Hight-speed-shift"]["a"]: float = 14
+config["Hight-speed-shift"]["c"]: float = 12.5
+config["Hight-speed-shift"]["s"]: float = 12
+config["Hight-speed-shift"]["d12"]: float = 7.5
+config["Hight-speed-shift"]["Dquan"]: float = 20
+config["Hight-speed-shift"]["L12"]: float = 25
+config["Hight-speed-shift"]["L67"]: float = 46
+config["Hight-speed-shift"]["l-duan"]: float = 22
+config["Hight-speed-shift"]["L23"] = 50
+config["Hight-speed-shift"]["L56"] = 12
+config["Hight-speed-shift"]["alpha"] = 20
+
+config["Medium-speed-shift"]: dict = {}
+config["Medium-speed-shift"]["A0"]: float = 112
+config["Medium-speed-shift"]["K1"]: float = 1.3
+config["Medium-speed-shift"]["Laxis"]: float = 32    # 联轴器的长度 查表
+config["Medium-speed-shift"]["Laxis/2"]: float = 27    # 半联轴器的长度 查表
+config["Medium-speed-shift"]["D23"]: float = 16   # 2 -3 轴的直径
+config["Medium-speed-shift"]["D34"]: float = 17  # 3 -4 长度 根据轴承
+config["Medium-speed-shift"]["D45"]: float = 47  # 4 -5 长度 根据轴承
+config["Medium-speed-shift"]["L78"]: float = 14  # 5 -6 长度 根据轴承
+config["Medium-speed-shift"]["h"]: float = 2.5  # 轴肩的高度
+config["Medium-speed-shift"]["a"]: float = 14
+config["Medium-speed-shift"]["c"]: float = 12.5
+config["Medium-speed-shift"]["s"]: float = 12
+config["Medium-speed-shift"]["d12"]: float = 7.5
+config["Medium-speed-shift"]["Dquan"]: float = 20
+config["Medium-speed-shift"]["L12"]: float = 25
+config["Medium-speed-shift"]["L67"]: float = 46
+config["Medium-speed-shift"]["l-duan"]: float = 22
+config["Medium-speed-shift"]["L23"] = 50
+config["Medium-speed-shift"]["L56"] = 12
+config["Medium-speed-shift"]["alpha"] = 20
+
+config["low-speed-shift"]: dict = {}
+config["low-speed-shift"]["A0"]: float = 112
+config["low-speed-shift"]["K1"]: float = 1.3
+config["low-speed-shift"]["Laxis"]: float = 32    # 联轴器的长度 查表
+config["low-speed-shift"]["Laxis/2"]: float = 27    # 半联轴器的长度 查表
+config["low-speed-shift"]["D23"]: float = 16   # 2 -3 轴的直径
+config["low-speed-shift"]["D34"]: float = 17  # 3 -4 长度 根据轴承
+config["low-speed-shift"]["D45"]: float = 47  # 4 -5 长度 根据轴承
+config["low-speed-shift"]["L78"]: float = 14  # 5 -6 长度 根据轴承
+config["low-speed-shift"]["h"]: float = 2.5  # 轴肩的高度
+config["low-speed-shift"]["a"]: float = 14
+config["low-speed-shift"]["c"]: float = 12.5
+config["low-speed-shift"]["s"]: float = 12
+config["low-speed-shift"]["d12"]: float = 7.5
+config["low-speed-shift"]["Dquan"]: float = 20
+config["low-speed-shift"]["L12"]: float = 25
+config["low-speed-shift"]["L67"]: float = 46
+config["low-speed-shift"]["l-duan"]: float = 22
+config["low-speed-shift"]["L23"] = 50
+config["low-speed-shift"]["L56"] = 12
+config["low-speed-shift"]["alpha"] = 20
+
+
+'''
+------------------------------------------------------ 轴承参数 ------------------------------------------------
+'''
