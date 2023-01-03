@@ -764,6 +764,20 @@ class shift(calculation):
         self.output(["计算Fr1", "由T1t和alpha得出：", str(self.Fr1), "N"])
         self.Fa1 = self.Ft1 * math.tan(math.radians(self.get_config("beta")))
         self.output(["计算Fa1", "由Fr1和beta得出：", str(self.Fa1), "N"])
+        
+        if self.typeName == "High-speed-shift":
+           self.set_config("Fr1", self.Fr1)
+           self.set_config("Fa1", self.Fa1)
+           self.set_config("Ft1", self.Ft1)
+        elif self.typeName == "Medium-speed-shift":
+            self.set_config("Fr2", self.Fr1)
+            self.set_config("Fa2", self.Fa1)           
+            self.set_config("Ft2", self.Ft1)
+        elif self.typeName == "Low-speed-shift":
+            self.set_config("Fr3", self.Fr1)
+            self.set_config("Fa3", self.Fa1)
+            self.set_config("Ft3", self.Ft1)
+
 
     def run(self) -> None:
         self.__Calculate_minimum_diameter()
@@ -778,8 +792,71 @@ class shift(calculation):
 
 
 class bearing(calculation):
+    def __init__(self, name: str) -> None:
+        self.TypeName: str = name
+        self.Frtemp: float = 0
+        self.Fatemp: float = 0
+        
+        if self.TypeName == "High-speed-bear":
+            self.Frtemp = self.get_config("Fr1")
+            self.Fatemp = self.get_config("Fa1")
+            self.Fttemp = self.get_config("Ft1")
+            self.ntemp = self.get_config("n1")
+        elif self.TypeName == "Low-speed-bear":
+            self.Frtemp = self.get_config("Fr3")
+            self.Fatemp = self.get_config("Fa3")
+            self.Fttemp = self.get_config("Ft3")
+            self.ntemp = self.get_config("n3")
+        elif self.TypeName == "Medium-speed-bear":
+            self.Frtemp = self.get_config("Fr2")
+            self.Fatemp = self.get_config("Fa2")
+            self.Fttemp = self.get_config("Ft2")
+            self.ntemp = self.get_config("n2")
+
+        super().__init__()
+    '''
+    计算径向载荷
+    '''
+    def __Calculate_radial_load(self) -> None:
+        self.Fta = math.sqrt(pow(self.Frtemp, 2) + pow(self.Fttemp, 2))
+        self.Fra = math.sqrt(pow(self.Fatemp, 2) + pow(self.Fatemp, 2))
+        self.output(["计算Fta", "由Fr1和Ft1得出：", str(self.Fta), "N"])
+        self.output(["计算Fra", "由Fa1和Ft1得出：", str(self.Fra), "N"])
+    
+    '''
+    计算轴向载荷
+    '''
+    def __Calculate_axial_load(self) -> None:
+        self.Sa = self.Fta / (2 * self.get_config("Y"))
+        self.output(["计算Sa", "由Fta和Y得出：", str(self.Sa), "N"])
+        self.Sr = self.Fra / (2 * self.get_config("Y"))
+        self.output(["计算Sr", "由Fra和Y得出：", str(self.Sr), "N"])
+    
+    '''
+    计算当量动载荷
+    '''
+    def __Calculate_equivalent_dynamic_load(self) -> None:
+        temp: float = self.Fatemp / self.Frtemp
+        if temp > self.get_config("e"):
+            self.X = 0.4
+        else:
+            self.X = 1
+            self.Y = 0
+        self.set_config("Y", self.Y)
+        self.P: float = self.get_config("fp") * (self.X * self.Fatemp + self.get_config("Y") * self.Fttemp )
+        self.output(["计算P", "由fp、X、Fa1和Y得出：", str(self.P), "N"])
+    
+    '''
+    计算轴承寿命
+    '''
+    def __Calculate_bearing_life(self) -> None:
+        self.L: float = pow(10, 6) / (60 * self.ntemp) * pow( self.get_config("C") / self.P, 10, 3 )
+        self.output(["计算L", "由C和P得出：", str(self.L), "h"])
+    
     def run(self) -> None:
-        pass
+        self.__Calculate_radial_load()
+        self.__Calculate_axial_load()
+        self.__Calculate_equivalent_dynamic_load()
 
 
 if __name__ == "__main__":
@@ -830,6 +907,14 @@ if __name__ == "__main__":
     '''
     轴承设计计算
     '''
-    print("\n****************************轴承的设计计算*****************************\n")
-    b = bearing()
-    b.run()
+    print("\n****************************高速轴：轴承的设计计算*****************************\n")
+    b1 = bearing("High-speed-bear")
+    b1.run()
+    
+    print("\n****************************中间轴：轴承的设计计算*****************************\n")
+    b2 = bearing("Medium-speed-bear")
+    b2.run()
+    
+    print("\n****************************低速轴：轴承的设计计算*****************************\n")
+    b3 = bearing("Low-speed-bear")
+    b3.run()
