@@ -3,6 +3,7 @@
 '''
 import config
 import math
+from sympy import *
 
 
 class point(object):
@@ -89,7 +90,12 @@ class calculation(object):
         step: str = ""
         for i in range(1, len(arg) - 2):
             step += arg[i]
-        print("步骤: %s -> %s -> res = %s" % (arg[0], step, res))
+
+        f = open(r'./计算结果.txt', 'a')
+
+        print("步骤: %s -> %s -> res = %s" % (arg[0], step, res), file=f)
+
+        f.close()
 
 
 '''
@@ -98,6 +104,11 @@ class calculation(object):
 
 
 class electroMotor(calculation):
+    def __init__(self) -> None:
+        self.output(
+            ["*************************** 电动机参数确定 **************************", "", "\n"])
+        super().__init__()
+
     '''
     确定容量
     '''
@@ -157,6 +168,11 @@ class electroMotor(calculation):
 
 
 class gearing(calculation):
+    def __init__(self) -> None:
+        self.output(
+            ["\n\n*************************** 传动装置参数计算 **************************", "", "\n"])
+        super().__init__()
+
     '''
     确定总传动比
     '''
@@ -261,6 +277,11 @@ class gearing(calculation):
 
 
 class pulley(calculation):
+    def __init__(self) -> None:
+        self.output(
+            ["\n\n*************************** 带轮设计计算 **************************", "", "\n"])
+        super().__init__()
+
     '''
     计算输入功率
     '''
@@ -277,7 +298,7 @@ class pulley(calculation):
 
     def __selection_pulley(self) -> None:
         self.n: float = self.get_config("n")
-        self.type: str = input("根据转速和功率 请输入带轮型号：")
+        self.type: str = self.get_config("V-Type")
         self.set_config("type", self.type)
         self.output(["带轮型号：", "根据Pca", " n", self.type, "型V带轮"])
 
@@ -405,6 +426,11 @@ class pulley(calculation):
 
 
 class gear(calculation):
+    def __init__(self) -> None:
+        self.output(
+            ["\n\n*************************** 齿轮设计计算 **************************", "", "\n"])
+        super().__init__()
+
     '''
     计算εα
     '''
@@ -667,7 +693,7 @@ class gear(calculation):
 
 
 '''
-高速轴设计计算
+轴设计计算
 '''
 
 
@@ -678,15 +704,21 @@ class shift(calculation):
 
         self.temp1str = self.temp2str = self.temp3str = ""
 
-        if self.typeName == "Hight-speed-shift":
+        if self.typeName == "High-speed-shift":
+            self.output(
+                ["\n\n*************************** 高速轴 轴设计计算 **************************", "", "\n"])
             self.temp1str = "P1"
             self.temp2str = "n1"
             self.temp3str = "T1"
-        elif self.typeName == "low-speed-shift":
+        elif self.typeName == "Low-speed-shift":
+            self.output(
+                ["\n\n*************************** 低速轴 轴设计计算 **************************", "", "\n"])
             self.temp1str = "P3"
             self.temp2str = "n3"
             self.temp3str = "T3"
         elif self.typeName == "Medium-speed-shift":
+            self.output(
+                ["\n\n*************************** 中间轴 轴设计计算 **************************", "", "\n"])
             self.temp1str = "P2"
             self.temp2str = "n2"
             self.temp3str = "T2"
@@ -696,7 +728,6 @@ class shift(calculation):
     def get_config(self, par: str) -> None:
         self.config[self.typeName][self.temp1str] = self.config[self.temp1str]
         self.config[self.typeName][self.temp2str] = self.config[self.temp2str]
-        self.config[self.typeName]["Ka"] = self.config["Ka"]
         self.config[self.typeName][self.temp3str] = self.config[self.temp3str]
         self.config[self.typeName]["B2"] = self.config["B2"]
         self.config[self.typeName]["beta"] = self.config["beta"]
@@ -719,7 +750,7 @@ class shift(calculation):
     '''
 
     def __Calculated_torque_coupling(self) -> None:
-        self.Tca = self.get_config("Ka") * self.get_config(self.temp3str)
+        self.Tca = self.get_config("KA") * self.get_config(self.temp3str)
         self.output(["联轴器的计算转矩", "由Ka和T1得出：", str(self.Tca), "N·m"])
 
     '''
@@ -728,62 +759,98 @@ class shift(calculation):
 
     def __Determine_parameters_coupling(self) -> None:
         self.d = int(self.dmin)  # 联轴器孔径
-        self.output(["确定联轴器孔径", "由dmin得出：", str(self.d), "mm"])
-        self.output(["确定联轴器长度", "查表得出", str(self.get_config("Laxis")), "mm"])
-        self.output(["确定半联轴器长度", "查表得出", str(
-            self.get_config("Laxis/2")), "mm"])
-        self.output(["确定2 - 3直径", "由dmin得出：",
-                    str(self.get_config("D23")), "mm"])
-        self.output(["确定1 - 2长度", "由Laxis / 2得出：",
-                    str(self.get_config("L12")), "mm"])
-        self.output(["确定挡圈直径", "由dmin得出：", str(
-            self.get_config("Dquan")), "mm"])
-        print("步骤： 选用 %f-%f-%f 的轴承" % (self.get_config("D34"),
-              self.get_config("D45"), self.get_config("L56")))
-        print("步骤：端盖 h = %f" % self.get_config("h"))
-        print("步骤： 6 - 7 长度  = %f" % self.get_config("L67"))
-        print("步骤：l 端盖外端面与带轮右端面间距离 = %f" % self.get_config("l-duan"))
-        print("步骤：2 - 3 长度 = %f" % self.get_config("L23"))
-        self.L45 = self.get_config(
-            "s") + self.get_config("a") + self.get_config("B2") + self.get_config("d12")
-        self.output(["确定4 - 5长度", "由s + a + B2 + d12得出：", str(self.L45), "mm"])
-        self.L78 = self.get_config(
-            "D34") + self.get_config("s") + self.get_config("a") + (self.get_config("L23") - self.get_config("L67"))
-        self.output(
-            ["确定7 - 8长度", "由D34 + s + a + (L23 - L67)得出：", str(self.L78), "mm"])
-        self.L45 = self.L78 - self.get_config("L56")
-        self.output(["确定4 - 5长度", "由7 - 8长度 - L56得出：", str(self.L45), "mm"])
+        if self.typeName == "High-speed-shift":
+            self.output(["确定联轴器孔径", "由dmin得出：", str(self.d), "mm"])
+            self.output(["确定联轴器长度", "查表得出", str(self.get_config("L")), "mm"])
+            self.output(["确定半联轴器长度", "查表得出", str(
+                self.get_config("L1")), "mm"])
+
+        self.output(["L 1 - 2", "选用", str(self.get_config("L1-2")), "mm"])
+        self.output(["L 2 - 3", "选用", str(self.get_config("L2-3")), "mm"])
+        self.output(["L 3 - 4", "选用", str(self.get_config("L3-4")), "mm"])
+        self.output(["L 4 - 5", "选用", str(self.get_config("L4-5")), "mm"])
+        self.output(["L 5 - 6", "选用", str(self.get_config("L5-6")), "mm"])
+        self.output(["L 6 - 7", "选用", str(self.get_config("L6-7")), "mm"])
+        self.output(["L 7 - 8", "选用", str(self.get_config("L7-8")), "mm"])
+
+        self.output(["D 1 - 2", "选用", str(self.get_config("D1-2")), "mm"])
+        self.output(["D 2 - 3", "选用", str(self.get_config("D2-3")), "mm"])
+        self.output(["D 3 - 4", "选用", str(self.get_config("D3-4")), "mm"])
+        self.output(["D 4 - 5", "选用", str(self.get_config("D4-5")), "mm"])
+        self.output(["D 5 - 6", "选用", str(self.get_config("D5-6")), "mm"])
+        self.output(["D 6 - 7", "选用", str(self.get_config("D6-7")), "mm"])
+        self.output(["D 7 - 8", "选用", str(self.get_config("D7-8")), "mm"])
 
     def __Force_calculation(self) -> None:
-        self.Ft1 = (2 * self.get_config(self.temp3str) * pow(10, 2)) / self.d
-        self.output(["计算Ft1", "由T1和d得出：", str(self.Ft1), "N"])
+        self.Ft = (2 * self.get_config(self.temp3str) * pow(10, 2)) / self.d
+        self.output(["计算Ft1", "由T1和d得出：", str(self.Ft), "N"])
 
-        self.Fr1 = self.Ft1 * \
+        self.Fr = self.Ft * \
             (math.tan(math.radians(self.get_config("alpha")) /
              math.cos(math.radians(self.get_config("beta")))))
-        self.output(["计算Fr1", "由T1t和alpha得出：", str(self.Fr1), "N"])
-        self.Fa1 = self.Ft1 * math.tan(math.radians(self.get_config("beta")))
-        self.output(["计算Fa1", "由Fr1和beta得出：", str(self.Fa1), "N"])
-        
-        if self.typeName == "High-speed-shift":
-           self.set_config("Fr1", self.Fr1)
-           self.set_config("Fa1", self.Fa1)
-           self.set_config("Ft1", self.Ft1)
-        elif self.typeName == "Medium-speed-shift":
-            self.set_config("Fr2", self.Fr1)
-            self.set_config("Fa2", self.Fa1)           
-            self.set_config("Ft2", self.Ft1)
-        elif self.typeName == "Low-speed-shift":
-            self.set_config("Fr3", self.Fr1)
-            self.set_config("Fa3", self.Fa1)
-            self.set_config("Ft3", self.Ft1)
+        self.output(["计算Fr", "由T1t和alpha得出：", str(self.Fr), "N"])
+        self.Fa = self.Ft * math.tan(math.radians(self.get_config("beta")))
+        self.output(["计算Fa", "由Fr1和beta得出：", str(self.Fa), "N"])
 
+        if self.typeName == "High-speed-shift":
+            self.set_config("Fa1", self.Fa)
+        elif self.typeName == "Medium-speed-shift":
+            self.set_config("Fa2", self.Fa)
+        elif self.typeName == "Low-speed-shift":
+            self.set_config("Fa3", self.Fa)
+
+    '''
+    计算支反力
+    '''
+
+    def __Calculate_supporting_force(self) -> None:
+        self.Fah = Symbol("Fah")
+        self.Fav = Symbol("Fav")
+        self.Fbh = Symbol("Fbh")
+        self.Fbv = Symbol("Fbv")
+
+        # 水平
+        res = solve([self.Ft * self.get_config("L3") - self.Fah *
+                     (self.get_config("L2") + self.get_config("L3")), self.Ft - self.Fah - self.Fbh], [self.Fah, self.Fbh])
+
+        self.Fah = res[self.Fah]
+        self.Fbh = res[self.Fbh]
+
+        self.output(["计算Fah", "由Ft1和L3得出：", str(self.Fah), "N"])
+        self.output(["计算Fbh", "由Ft1和L3得出：", str(self.Fbh), "N"])
+
+        # 垂直
+        res = solve([self.Fr - self.Fav - self.Fbv, self.Fa *
+                     (self.get_config("d1") / 2) - self.Fr * self.get_config("L3") + self.Fav * (self.get_config("L2") + self.get_config("L3"))], [self.Fav, self.Fbv])
+
+        self.Fav = res[self.Fav]
+        self.Fbv = res[self.Fbv]
+
+        self.output(["计算Fav", "由Fr1和L3得出：", str(self.Fav), "N"])
+        self.output(["计算Fbv", "由Fr1和L3得出：", str(self.Fbv), "N"])
+
+        if self.typeName == "High-speed-shift":
+            self.set_config("Fah1", self.Fah)
+            self.set_config("Fav1", self.Fav)
+            self.set_config("Fbh1", self.Fbh)
+            self.set_config("Fbv1", self.Fbv)
+        elif self.typeName == "Medium-speed-shift":
+            self.set_config("Fah2", self.Fah)
+            self.set_config("Fav2", self.Fav)
+            self.set_config("Fbh2", self.Fbh)
+            self.set_config("Fbv2", self.Fbv)
+        elif self.typeName == "Low-speed-shift":
+            self.set_config("Fah3", self.Fah)
+            self.set_config("Fav3", self.Fav)
+            self.set_config("Fbh3", self.Fbh)
+            self.set_config("Fbv3", self.Fbv)
 
     def run(self) -> None:
         self.__Calculate_minimum_diameter()
         self.__Calculated_torque_coupling()
         self.__Determine_parameters_coupling()
         self.__Force_calculation()
+        self.__Calculate_supporting_force()
 
 
 '''
@@ -793,128 +860,180 @@ class shift(calculation):
 
 class bearing(calculation):
     def __init__(self, name: str) -> None:
-        self.TypeName: str = name
-        self.Frtemp: float = 0
-        self.Fatemp: float = 0
-        
-        if self.TypeName == "High-speed-bear":
-            self.Frtemp = self.get_config("Fr1")
-            self.Fatemp = self.get_config("Fa1")
-            self.Fttemp = self.get_config("Ft1")
-            self.ntemp = self.get_config("n1")
-        elif self.TypeName == "Low-speed-bear":
-            self.Frtemp = self.get_config("Fr3")
-            self.Fatemp = self.get_config("Fa3")
-            self.Fttemp = self.get_config("Ft3")
-            self.ntemp = self.get_config("n3")
-        elif self.TypeName == "Medium-speed-bear":
-            self.Frtemp = self.get_config("Fr2")
-            self.Fatemp = self.get_config("Fa2")
-            self.Fttemp = self.get_config("Ft2")
-            self.ntemp = self.get_config("n2")
-
         super().__init__()
+
+        self.TypeName: str = name
+        self.Fahtemp: float = 0
+        self.Favtemp: float = 0
+        self.Fbhtemp: float = 0
+        self.Fbvtemp: float = 0
+        self.Fa: float = 0
+
+        if self.TypeName == "High-speed-bear":
+            self.output(
+                ["\n\n*************************** 高速轴 轴承设计计算 **************************", "", "\n"])
+            self.Fahtemp: float = self.config["Fah1"]
+            self.Favtemp: float = self.config["Fav1"]
+            self.Fbhtemp: float = self.config["Fbh1"]
+            self.Fbvtemp: float = self.config["Fbv1"]
+            self.Fa: float = self.config["Fa1"]
+            self.ntemp = self.config["n1"]
+        elif self.TypeName == "Low-speed-bear":
+            self.output(
+                ["\n\n*************************** 低速轴 轴承设计计算 **************************", "", "\n"])
+            self.Fahtemp: float = self.config["Fah3"]
+            self.Favtemp: float = self.config["Fav3"]
+            self.Fbhtemp: float = self.config["Fbh3"]
+            self.Fbvtemp: float = self.config["Fbv3"]
+            self.Fa: float = self.config["Fa2"]
+            self.ntemp = self.config["n3"]
+        elif self.TypeName == "Medium-speed-bear":
+            self.output(
+                ["\n\n*************************** 中间轴 轴承设计计算 **************************", "", "\n"])
+            self.Fahtemp: float = self.config["Fah2"]
+            self.Favtemp: float = self.config["Fav2"]
+            self.Fbhtemp: float = self.config["Fbh2"]
+            self.Fbvtemp: float = self.config["Fbv2"]
+            self.Fa: float = self.config["Fa3"]
+            self.ntemp = self.config["n2"]
+
+    def get_config(self, par: str) -> None:
+        return self.config[self.TypeName][par]
+
     '''
     计算径向载荷
     '''
+
     def __Calculate_radial_load(self) -> None:
-        self.Fta = math.sqrt(pow(self.Frtemp, 2) + pow(self.Fttemp, 2))
-        self.Fra = math.sqrt(pow(self.Fatemp, 2) + pow(self.Fatemp, 2))
-        self.output(["计算Fta", "由Fr1和Ft1得出：", str(self.Fta), "N"])
-        self.output(["计算Fra", "由Fa1和Ft1得出：", str(self.Fra), "N"])
-    
+        self.FrA = pow(pow(self.Fahtemp, 2) + pow(self.Favtemp, 2), 0.5)
+        self.FrB = pow(pow(self.Fbhtemp, 2) + pow(self.Fbvtemp, 2), 0.5)
+        self.output(["计算FtA", "由Fr1和Ft1得出：", str(self.FrA), "N"])
+        self.output(["计算FrB", "由Fa1和Ft1得出：", str(self.FrB), "N"])
+
     '''
     计算轴向载荷
     '''
+
     def __Calculate_axial_load(self) -> None:
-        self.Sa = self.Fta / (2 * self.get_config("Y"))
+        self.Sa = self.FrA / (2 * self.get_config("Y"))
         self.output(["计算Sa", "由Fta和Y得出：", str(self.Sa), "N"])
-        self.Sr = self.Fra / (2 * self.get_config("Y"))
-        self.output(["计算Sr", "由Fra和Y得出：", str(self.Sr), "N"])
-    
+        self.Sb = self.FrB / (2 * self.get_config("Y"))
+        self.output(["计算Sb", "由Fra和Y得出：", str(self.Sb), "N"])
+        if self.Fa + self.Sb > self.Sa:
+            self.output(["轴承A被压紧，轴承B放松", "", ""])
+        else:
+            self.output(["轴承A放松，轴承B被压紧", "", ""])
     '''
     计算当量动载荷
     '''
+
     def __Calculate_equivalent_dynamic_load(self) -> None:
-        temp: float = self.Fatemp / self.Frtemp
+        temp: float = self.Fa / self.Sa
+        self.Y = self.get_config("Y")
         if temp > self.get_config("e"):
             self.X = 0.4
         else:
             self.X = 1
             self.Y = 0
         self.set_config("Y", self.Y)
-        self.P: float = self.get_config("fp") * (self.X * self.Fatemp + self.get_config("Y") * self.Fttemp )
-        self.output(["计算P", "由fp、X、Fa1和Y得出：", str(self.P), "N"])
-    
+
+        self.Pa: float = self.get_config(
+            "fp") * (self.X * self.Fa + self.get_config("Y") * self.Sa)
+        self.output(["计算 A 轴承 P", "由fp、X、Fa1和Y得出：", str(self.Pa), "N"])
+
+        temp: float = self.Fa / self.Sb
+        self.Y = self.get_config("Y")
+        if temp > self.get_config("e"):
+            self.X = 0.4
+        else:
+            self.X = 1
+            self.Y = 0
+        self.set_config("Y", self.Y)
+
+        self.Pb: float = self.get_config(
+            "fp") * (self.X * self.Fa + self.get_config("Y") * self.Sb)
+        self.output(["计算 B 轴承 P", "由fp、X、Fa1和Y得出：", str(self.Pb), "N"])
+
     '''
     计算轴承寿命
     '''
+
     def __Calculate_bearing_life(self) -> None:
-        self.L: float = pow(10, 6) / (60 * self.ntemp) * pow( self.get_config("C") / self.P, 10, 3 )
-        self.output(["计算L", "由C和P得出：", str(self.L), "h"])
-    
+        self.La: float = (pow(10, 5) / (60 * self.ntemp)) * \
+            pow((self.get_config("C") / self.Pa), 10 / 3)
+        self.output(["轴承 A 计算 L", "由C和P得出：", str(self.La), "h"])
+        self.Lb: float = (pow(10, 5) / (60 * self.ntemp)) * \
+            pow((self.get_config("C") / self.Pb), 10 / 3)
+        self.output(["轴承 B 计算 L", "由C和P得出：", str(self.Lb), "h"])
+
+    '''
+    计算深沟球轴承寿命
+    '''
+
+    def __Calculate_life_deep_groove_ball_bearings(self) -> None:
+        self.__Calculate_bearing_life()
+        if self.La < 38400:
+            self.output(["不满足寿命要求，需要重新设计", "", ""])
+            self.Pa = self.FrB
+            self.__Calculate_life_deep_groove_ball_bearings()
+        else:
+            self.output(["满足寿命要求，需要重新设计", "", ""])
+
     def run(self) -> None:
         self.__Calculate_radial_load()
         self.__Calculate_axial_load()
         self.__Calculate_equivalent_dynamic_load()
+        if self.TypeName != "Low-speed-bear":
+            self.__Calculate_bearing_life()
+        else:
+            self.__Calculate_life_deep_groove_ball_bearings()
 
 
 if __name__ == "__main__":
-
     '''
     确定电动机参数
     '''
-    print("\n**********************确定电动机参数***************************\n")
     e = electroMotor()
     e.run()
 
     '''
     确定传动装置参数
     '''
-    print("\n*************************确定传动装置参数**************************\n")
     g = gearing()
     g.run()
 
     '''
     带轮设计计算
     '''
-    print("\n**************************带轮设计计算*****************************\n")
     p = pulley()
     p.run()
 
     '''
     齿轮设计计算
     '''
-    print("\n****************************齿轮设计计算*****************************\n")
     ge = gear()
     ge.run()
 
     '''
     轴设计计算
     '''
-    print("\n****************************高速轴的设计计算*****************************\n")
-    hss = shift("Hight-speed-shift")
+    hss = shift("High-speed-shift")
     hss.run()
 
-    print("\n****************************中间轴的设计计算*****************************\n")
     mss = shift("Medium-speed-shift")
     mss.run()
 
-    print("\n****************************低速轴的设计计算*****************************\n")
-    lss = shift("low-speed-shift")
+    lss = shift("Low-speed-shift")
     lss.run()
 
     '''
     轴承设计计算
     '''
-    print("\n****************************高速轴：轴承的设计计算*****************************\n")
     b1 = bearing("High-speed-bear")
     b1.run()
-    
-    print("\n****************************中间轴：轴承的设计计算*****************************\n")
+
     b2 = bearing("Medium-speed-bear")
     b2.run()
-    
-    print("\n****************************低速轴：轴承的设计计算*****************************\n")
+
     b3 = bearing("Low-speed-bear")
     b3.run()

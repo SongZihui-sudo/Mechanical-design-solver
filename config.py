@@ -8,7 +8,6 @@ config: dict = {}
 ---------------------------------------------------- 运输机参数 ----------------------------------------------------
 '''
 
-
 config["T"]: int = 1000    # 运输机工作轴转矩
 config["v"]: float = 0.70    # 运输带工作速度
 config["D"]: float = 0.4     # 滚筒直径
@@ -31,6 +30,7 @@ config["P0"]: float = 1.67  # 单根V带的额定功率
 config["dP0"]: float = 0.169  # 单根V带的额定功率增量
 config["ka"]: float = 0.92  # 小带轮的包角修正系数
 config["kl"]: float = 1.01  # 带长修正系数
+config["V-Type"]: str = "B"  # V带类型
 # V带选型
 config["type_linear_coefficient"]: dict = {
     "A": {
@@ -98,79 +98,139 @@ config["σF1"]: float = 500
 config["σF2"]: float = 380
 
 '''
------------------------------------------------------ 轴参数 ----------------------------------------------------
+----------------------------------------------------- 高速轴参数 ----------------------------------------------------
 '''
-config["Hight-speed-shift"]: dict = {}
-config["Hight-speed-shift"]["A0"]: float = 112
-config["Hight-speed-shift"]["K1"]: float = 1.3
-config["Hight-speed-shift"]["Laxis"]: float = 32        # 联轴器的长度 查表
-config["Hight-speed-shift"]["Laxis/2"]: float = 27      # 半联轴器的长度 查表
-config["Hight-speed-shift"]["D23"]: float = 16          # 2 -3 轴的直径
-config["Hight-speed-shift"]["D34"]: float = 17          # 3 -4 长度 根据轴承
-config["Hight-speed-shift"]["D45"]: float = 47          # 4 -5 长度 根据轴承
-config["Hight-speed-shift"]["L78"]: float = 14          # 5 -6 长度 根据轴承
-config["Hight-speed-shift"]["h"]: float = 2.5           # 轴肩的高度
-config["Hight-speed-shift"]["a"]: float = 14
-config["Hight-speed-shift"]["c"]: float = 12.5
-config["Hight-speed-shift"]["s"]: float = 12
-config["Hight-speed-shift"]["d12"]: float = 7.5
-config["Hight-speed-shift"]["Dquan"]: float = 20
-config["Hight-speed-shift"]["L12"]: float = 25
-config["Hight-speed-shift"]["L67"]: float = 46
-config["Hight-speed-shift"]["l-duan"]: float = 22
-config["Hight-speed-shift"]["L23"] = 50
-config["Hight-speed-shift"]["L56"] = 12
-config["Hight-speed-shift"]["alpha"] = 20
+# ZL1 联轴器
+config["High-speed-shift"]: dict = {}
+config["High-speed-shift"]["a"]: float = 14     # a 尺寸 齿轮距离箱体内壁距离
+config["High-speed-shift"]["c"]: float = 12.5   # c
+config["High-speed-shift"]["s"]: float = 12     # 箱体内壁的一段距离
+config["High-speed-shift"]["bear"]: list = [17, 40, 12]  # 30203 圆锥滚子轴承
+config["High-speed-shift"]["A0"]: float = 112  # A0 尺寸
+config["High-speed-shift"]["KA"]: float = 1.3  # 使用系数
+config["High-speed-shift"]["L1-2"]: float = 28  # l1-2 尺寸
+config["High-speed-shift"]["L2-3"]: float = 40  # l2-3 尺寸
+config["High-speed-shift"]["L3-4"]: float = 47
+config["High-speed-shift"]["L4-5"]: float = config["High-speed-shift"]["a"] + \
+    config["High-speed-shift"]["s"] + \
+    config["High-speed-shift"]["bear"][0] + 50  # l4-5 尺寸
+config["High-speed-shift"]["L5-6"]: float = 12  # l5-6 尺寸
+config["High-speed-shift"]["L6-7"]: float = 46  # l6-7 尺寸
+config["High-speed-shift"]["L7-8"]: float = 60  # l7-8 尺寸
+config["High-speed-shift"]["D1-2"]: float = 14  # d1-2 尺寸
+config["High-speed-shift"]["D2-3"]: float = 16  # d2-3 尺寸
+config["High-speed-shift"]["D3-4"]: float = 18  # d3-4 尺寸
+config["High-speed-shift"]["D4-5"]: float = 22  # d4-5 尺寸
+config["High-speed-shift"]["D5-6"]: float = 24  # d5-6 尺寸
+config["High-speed-shift"]["D6-7"]: float = 26  # d6-7 尺寸
+config["High-speed-shift"]["D7-8"]: float = 17  # d7-8 尺寸
+config["High-speed-shift"]["Dquan"]: float = 25     # 挡圈直径
+config["High-speed-shift"]["lduan"]: float = 30    # 挡圈长度
+config["High-speed-shift"]["alpha"] = 20    # 角
+config["High-speed-shift"]["L"] = 32    # 联轴器长度
+config["High-speed-shift"]["L1"] = 27   # 半联轴器长度
+config["High-speed-shift"]["L2"] = 37   # 根据轴承查表
+config["High-speed-shift"]["L3"] = 22   # 根据轴承查表
+config["High-speed-shift"]["d1"] = 12              # 联轴器 d1
+config["High-speed-shift"]["h"] = 2.5           # 轴肩 h
+
+'''
+----------------------------------------------------- 中间轴参数 ----------------------------------------------------
+'''
 
 config["Medium-speed-shift"]: dict = {}
-config["Medium-speed-shift"]["A0"]: float = 112
-config["Medium-speed-shift"]["K1"]: float = 1.3             # 32904
-config["Medium-speed-shift"]["Laxis"]: float = False        # 联轴器的长度 查表
-config["Medium-speed-shift"]["Laxis/2"]: float = False      # 半联轴器的长度 查表
-config["Medium-speed-shift"]["D23"]: float = 16             # 2 -3 轴的直径
-config["Medium-speed-shift"]["D34"]: float = 20             # 3 -4 长度 根据轴承
-config["Medium-speed-shift"]["D45"]: float = 37             # 4 -5 长度 根据轴承
-config["Medium-speed-shift"]["L78"]: float = 12             # 5 -6 长度 根据轴承
-config["Medium-speed-shift"]["h"]: float = 3                # 轴肩的高度
-config["Medium-speed-shift"]["a"]: float = 17
-config["Medium-speed-shift"]["c"]: float = False
-config["Medium-speed-shift"]["s"]: float = False
-config["Medium-speed-shift"]["d12"]: float = 10
-config["Medium-speed-shift"]["Dquan"]: float = 30
-config["Medium-speed-shift"]["L12"]: float = 25
-config["Medium-speed-shift"]["L67"]: float = 46
-config["Medium-speed-shift"]["l-duan"]: float = 32
-config["Medium-speed-shift"]["L23"] = 20
-config["Medium-speed-shift"]["L56"] = 40
-config["Medium-speed-shift"]["alpha"] = 20
+config["Medium-speed-shift"]["a"]: float = 17    # a
+config["Medium-speed-shift"]["c"]: float = False  # 没用到
+config["Medium-speed-shift"]["s"]: float = 11.5     # 箱体内壁的一段距离
+config["Medium-speed-shift"]["h"] = 3.5          # 轴肩 h
+config["Medium-speed-shift"]["bear"]: list = [20, 37, 12]   # 30904 圆锥滚子轴承
+config["Medium-speed-shift"]["A0"]: float = 112         # A0 尺寸
+config["Medium-speed-shift"]["KA"]: float = 1.3     # 使用系数
+config["Medium-speed-shift"]["L1-2"]: float = 12   # L1-2 尺寸
+config["Medium-speed-shift"]["L2-3"]: float = 20    # L2-3 尺寸
+config["Medium-speed-shift"]["L3-4"]: float = 70  # L3-4 尺寸
+config["Medium-speed-shift"]["L4-5"]: float = 10  # L4-5 尺寸
+config["Medium-speed-shift"]["L5-6"]: float = 50  # L5-6 尺寸
+config["Medium-speed-shift"]["L6-7"]: float = 25    # L6-7 尺寸
+config["Medium-speed-shift"]["L7-8"]: float = 12  # L7-8 尺寸
+config["Medium-speed-shift"]["D1-2"]: float = 20    # D1-2 尺寸
+config["Medium-speed-shift"]["D2-3"]: float = config["Medium-speed-shift"]["bear"][0] + \
+    2 * config["Medium-speed-shift"]["h"]  # D2-3 尺寸
+config["Medium-speed-shift"]["D3-4"]: float = 36  # D3-4 尺寸
+config["Medium-speed-shift"]["D4-5"]: float = 48  # D4-5 尺寸
+config["Medium-speed-shift"]["D5-6"]: float = 36  # D5-6 尺寸
+config["Medium-speed-shift"]["D6-7"]: float = config["Medium-speed-shift"]["bear"][0] + \
+    2 * config["Medium-speed-shift"]["h"]  # D6-7 尺寸
+config["Medium-speed-shift"]["D7-8"]: float = 20  # D7-8 尺寸
+config["Medium-speed-shift"]["Dquan"]: float = 30   # 挡圈
+config["Medium-speed-shift"]["lduan"]: float = False  # 没用到
+config["Medium-speed-shift"]["alpha"] = 20  # 角
+config["Medium-speed-shift"]["L2"] = 50  # 根据轴承查表
+config["Medium-speed-shift"]["L3"] = 30  # 根据轴承查表
+config["Medium-speed-shift"]["d1"] = False  # 没用到
 
-config["low-speed-shift"]: dict = {}
-config["low-speed-shift"]["A0"]: float = 112
-config["low-speed-shift"]["K1"]: float = 1.3        # 61806
-config["low-speed-shift"]["Laxis"]: float = False      # 联轴器的长度 查表
-config["low-speed-shift"]["Laxis/2"]: float = False    # 半联轴器的长度 查表
-config["low-speed-shift"]["D23"]: float = 16        # 2 -3 轴的直径
-config["low-speed-shift"]["D34"]: float = 30        # 3 -4 长度 根据轴承
-config["low-speed-shift"]["D45"]: float = 47        # 4 -5 长度 根据轴承
-config["low-speed-shift"]["L78"]: float = 14        # 5 -6 长度 根据轴承
-config["low-speed-shift"]["h"]: float = 6         # 轴肩的高度
-config["low-speed-shift"]["a"]: float = 16.5
-config["low-speed-shift"]["c"]: float = False
-config["low-speed-shift"]["s"]: float = False
-config["low-speed-shift"]["d12"]: float = 7.5
-config["low-speed-shift"]["Dquan"]: float = 30
-config["low-speed-shift"]["L12"]: float = 30
-config["low-speed-shift"]["L67"]: float = 30
-config["low-speed-shift"]["l-duan"]: float = 20
-config["low-speed-shift"]["L23"] = 40
-config["low-speed-shift"]["L56"] = 16
-config["low-speed-shift"]["alpha"] = 20
 
 '''
------------------------------------------------------- 轴承参数 ------------------------------------------------
+----------------------------------------------------- 低速轴参数 ----------------------------------------------------
 '''
-config["Y"]: float = 2  # 轴向动载荷系数
-config["e"]: float = 0.3 # 判断系数
-config["C"]: float = 44800 # 基本额定动载荷
-config["C0"]: float = 0.5 # 基本额定静载荷系数
-config["fp"]: float = 1.2
+
+config["Low-speed-shift"]: dict = {}
+config["Low-speed-shift"]["a"]: float = 14      # a
+config["Low-speed-shift"]["c"]: float = False   # 没用到
+config["Low-speed-shift"]["s"]: float = False   # 没用到
+config["Low-speed-shift"]["h"] = 5          # 轴肩 h
+config["Low-speed-shift"]["bear"]: list = [30, 42, 7]  # 61806 深沟球轴承
+config["Low-speed-shift"]["A0"]: float = 112     # A0 尺寸
+config["Low-speed-shift"]["KA"]: float = 1.3    # 使用系数
+config["Low-speed-shift"]["L1-2"]: float = 12   # L1-2 尺寸
+config["Low-speed-shift"]["L2-3"]: float = 20       # L2-3 尺寸
+config["Low-speed-shift"]["L3-4"]: float = 90  # L3-4 尺寸
+config["Low-speed-shift"]["L4-5"]: float = 40       # L4-5 尺寸
+config["Low-speed-shift"]["L5-6"]: float = 30    # L5-6 尺寸
+config["Low-speed-shift"]["L6-7"]: float = 25       # L6-7 尺寸
+config["Low-speed-shift"]["L7-8"]: float = 46   # L7-8 尺寸
+config["Low-speed-shift"]["D1-2"]: float = 30   # D1-2 尺寸
+config["Low-speed-shift"]["D2-3"]: float = 40   # D2-3 尺寸
+config["Low-speed-shift"]["D3-4"]: float = 1.15 * 1.05 * \
+    config["Low-speed-shift"]["D2-3"]   # D3-4 尺寸
+config["Low-speed-shift"]["D4-5"]: float = 80   # D4-5 尺寸
+config["Low-speed-shift"]["D5-6"]: float = 40   # D5-6 尺寸
+config["Low-speed-shift"]["D6-7"]: float = 30   # D6-7 尺寸
+config["Low-speed-shift"]["D7-8"]: float = 36   # D7-8 尺寸
+config["Low-speed-shift"]["Dquan"]: float = False   # 没用到
+config["Low-speed-shift"]["lduan"]: float = False   # 没用到
+config["Low-speed-shift"]["alpha"] = 20     # 角
+config["Low-speed-shift"]["L2"] = 90     # L2 尺寸
+config["Low-speed-shift"]["L3"] = 80        # L3 尺寸
+config["Low-speed-shift"]["d1"] = False  # 没用到
+
+
+'''
+------------------------------------------------------ 高速轴承参数 ------------------------------------------------
+'''
+config["High-speed-bear"]: dict = {}
+config["High-speed-bear"]["Y"]: float = 2.5  # 轴向动载荷系数
+config["High-speed-bear"]["e"]: float = 0.3  # 判断系数
+config["High-speed-bear"]["C"]: float = 44800  # 基本额定动载荷
+config["High-speed-bear"]["C0"]: float = 30000  # 基本额定静载荷系数
+config["High-speed-bear"]["fp"]: float = 1.2
+
+'''
+------------------------------------------------------- 中间轴承参数 ------------------------------------------------
+'''
+config["Medium-speed-bear"]: dict = {}
+config["Medium-speed-bear"]["Y"]: float = 2.2  # 轴向动载荷系数
+config["Medium-speed-bear"]["e"]: float = 0.31  # 判断系数
+config["Medium-speed-bear"]["C"]: float = 71200  # 基本额定动载荷
+config["Medium-speed-bear"]["C0"]: float = 50200  # 基本额定静载荷
+config["Medium-speed-bear"]["fp"]: float = 1.2
+
+'''
+-------------------------------------------------------- 低速轴承参数 ------------------------------------------------
+'''
+config["Low-speed-bear"]: dict = {}
+config["Low-speed-bear"]["Y"]: float = 2.5  # 轴向动载荷系数
+config["Low-speed-bear"]["e"]: float = 0.3  # 判断系数
+config["Low-speed-bear"]["C"]: float = 31500  # 基本额定动载荷
+config["Low-speed-bear"]["C0"]: float = 47800  # 基本额定静载荷系数
+config["Low-speed-bear"]["fp"]: float = 1.2
